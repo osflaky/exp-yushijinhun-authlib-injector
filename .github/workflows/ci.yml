@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: macos-latest
+          arch: arm64
+          runner: macos-latest
+          distribution: temurin
+          expander_leg: macos-latest--arm64
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Setup JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: ${{ matrix.distribution }}
+        java-version: 17
+        architecture: ${{ matrix.arch }}
+        cache: gradle
+
+    - name: Build
+      run: ./gradlew
+
+    - name: Test
+      run: ./gradlew test
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: build/libs/*
+    name: build [${{ matrix.expander_leg }}]
+    timeout-minutes: 150
